@@ -34,10 +34,45 @@
 					<div class="row gtr-150">
 						<div class="col-6 col-12-medium">
 							<header class="major">
-								<h2>Lorem ipsum dolor adipiscing<br />
+								<h2>json파일 데이터프레임 가공하는 파이프라인 구축<br />
 								amet dolor consequat</h2>
 							</header>
-							<p>Adipiscing a commodo ante nunc accumsan et interdum mi ante adipiscing. A nunc lobortis non nisl amet vis sed volutpat aclacus nascetur ac non. Lorem curae et ante amet sapien sed tempus adipiscing id accumsan.</p>
+							<p>import requests
+								import pandas as pd
+								import numpy as np
+								
+								url = 'http://topping.io:8000/API/silos/user/dashboard?user_seq=30'
+								
+								response = requests.get(url)
+								data = response.json()
+								df = pd.DataFrame(data)
+								
+								dict_agency = df.loc['agency', 'company']
+								df_agency = pd.DataFrame(dict_agency)
+								
+								df_farm = pd.DataFrame(df_agency.loc[0,'farm'])
+								for i in range(1, len(df_agency.index)) :
+									if df_agency.loc[i,'farm'] != [] :
+										df_farm_temp = pd.DataFrame(df_agency.loc[i,'farm'])
+										df_farm = pd.concat([df_farm, df_farm_temp])
+								
+								df_farm = df_farm.reset_index(drop=True)
+								
+								df_silo = pd.DataFrame(df_farm.loc[0,'silo'])
+								for i in range(1, len(df_farm.index)) :
+									df_silo_temp = pd.DataFrame(df_farm.loc[i,'silo'])
+									df_silo = pd.concat([df_silo, df_silo_temp])
+										
+								df_farm = df_farm.rename(columns={'seq':'farm_silo_id'})
+								df_silo = df_silo.rename(columns={'farm_id':'farm_silo_id'})
+								df_silo['farm_silo_id'] = df_silo['farm_silo_id'].astype('int64')
+								df_fram_silo = pd.merge(df_farm, df_silo, on='farm_silo_id', how='left')
+								
+								df_agency = df_agency.rename(columns={'seq':'agency_farm_seq'})
+								df_fram_silo = df_fram_silo.rename(columns={'agency_seq':'agency_farm_seq'})
+								df = pd.concat([df_agency, df_fram_silo])
+								df = df.set_index('agency_farm_seq').sort_index()
+								df</p>
 						</div>
 						<div class="col-6 col-12-medium imp-medium">
 							<span class="image fit"><img src="images/pic01.jpg" alt="" /></span>
